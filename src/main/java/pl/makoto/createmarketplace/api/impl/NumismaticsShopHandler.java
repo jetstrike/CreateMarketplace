@@ -82,7 +82,8 @@ public class NumismaticsShopHandler implements IShopHandler {
             return OptionalInt.of(StockInfo.INFINITE);
         }
 
-        ItemStack selling = ShopScanner.invokeMethodReturningItemStack(be, "getSellingItem")
+        ItemStack selling = ShopScanner.invokeMethodReturningItemStack(be, "getFilterItem")
+                .or(() -> ShopScanner.invokeMethodReturningItemStack(be, "getSellingItem"))
                 .orElse(ItemStack.EMPTY);
         if (selling.isEmpty()) return OptionalInt.empty();
         int unit = Math.max(1, selling.getCount());
@@ -145,7 +146,9 @@ public class NumismaticsShopHandler implements IShopHandler {
 
             if (isVendor) {
                 // Logika dla Vendor
-                if (nbt.contains("Selling", 10)) {
+                if (nbt.contains("Filter", 10)) {
+                    sellingItem = ItemStack.parseOptional(level.registryAccess(), nbt.getCompound("Filter"));
+                } else if (nbt.contains("Selling", 10)) {
                     sellingItem = ItemStack.parseOptional(level.registryAccess(), nbt.getCompound("Selling"));
                 } else {
                     sellingItem = ShopScanner.findItemStackRecursive(be, 3);
